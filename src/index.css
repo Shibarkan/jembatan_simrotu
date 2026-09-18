@@ -1,11 +1,18 @@
 @import "tailwindcss";
-html{
-scroll-behavior:smooth;
+
+@theme {
+  --color-sirotu-red: #b91c1c;
+  --color-sirotu-dark: #0f172a;
 }
 
-body{
-margin:0;
-font-family:
-Inter,
-sans-serif;
+html {
+  scroll-behavior: smooth;
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, sans-serif;
+  color: #111827;
+  background: #f9fafb;
 }
