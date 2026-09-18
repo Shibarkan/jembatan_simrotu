@@ -251,8 +251,8 @@
 
     const ARCH_START = -50; // STA 25 m
     const ARCH_END = 50; // STA 125 m
-    const ARCH_SPRING_Y = -2.35;
-    const ARCH_RISE = 16.2;
+    const ARCH_SPRING_Y = -3.80; // diturunkan lagi
+    const ARCH_RISE = 17.65; // menjaga elevasi puncak arch tetap hampir sama
     const ARCH_BASE_HALF_WIDTH = 6.05;
     const ARCH_TILT = THREE.MathUtils.degToRad(10);
 
@@ -563,12 +563,12 @@
       // Dasar pedestal dibuat sampai y = -8.25 agar bagian bawah
       // tumpuan tampak sedikit tenggelam di air.
       const WATER_LEVEL_Y = -7.0;
-      const PEDESTAL_BOTTOM_Y = -8.25;
-      const PEDESTAL_TOP_Y = ARCH_SPRING_Y - 0.48;
+      const PEDESTAL_BOTTOM_Y = -8.75;
+      const PEDESTAL_TOP_Y = ARCH_SPRING_Y - 0.28;
       const pedestalHeight = PEDESTAL_TOP_Y - PEDESTAL_BOTTOM_Y;
 
       const pedestal = new THREE.Mesh(
-        new THREE.BoxGeometry(5.2, pedestalHeight, 4.2),
+        new THREE.BoxGeometry(3.8, pedestalHeight, 3.2),
         concreteMat
       );
 
@@ -585,7 +585,7 @@
       // Collar tipis tepat di garis air supaya efek "masuk air"
       // terlihat jelas saat kamera diputar.
       const waterlineCollar = new THREE.Mesh(
-        new THREE.BoxGeometry(5.38, 0.10, 4.38),
+        new THREE.BoxGeometry(3.95, 0.08, 3.35),
         bearingMat
       );
 
@@ -625,16 +625,16 @@
       addCylinderBetween(
         new THREE.Vector3(x, ARCH_SPRING_Y + 0.32, z - 0.95),
         new THREE.Vector3(x, ARCH_SPRING_Y + 0.32, z + 0.95),
-        0.22,
+        0.18,
         boltMat
       );
 
       // 4 anchor bolt + mur.
       const boltOffsets = [
-        [-1.05, -0.82],
-        [-1.05,  0.82],
-        [ 1.05, -0.82],
-        [ 1.05,  0.82]
+        [-0.82, -0.62],
+        [-0.82,  0.62],
+        [ 0.82, -0.62],
+        [ 0.82,  0.62]
       ];
 
       for (const [dx, dz] of boltOffsets) {
