@@ -1,253 +1,767 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Visualisasi 3D Jembatan UGM</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jembatan Sirotu - Visualisasi 3D</title>
+
   <style>
-    body { 
-      margin: 0; 
-      overflow: hidden; 
-      background-color: #87CEEB; /* Warna langit biru cerah */
-      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #eef2f3;
+      font-family: Arial, Helvetica, sans-serif;
     }
-    canvas { display: block; }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
     #overlay {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      color: #1a202c;
+      position: fixed;
+      top: 18px;
+      left: 22px;
+      z-index: 10;
       pointer-events: none;
-      background: rgba(255,255,255,0.7);
-      padding: 10px 20px;
-      border-radius: 8px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.78);
+      border: 1px solid rgba(15,23,42,.08);
+      box-shadow: 0 8px 30px rgba(15,23,42,.08);
+      backdrop-filter: blur(10px);
     }
-    h1 { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: 0.05em; }
-    p { margin: 5px 0 0 0; font-size: 12px; font-weight: 600; }
+
+    #overlay h1 {
+      margin: 0;
+      color: #b91c1c;
+      font-size: 16px;
+      line-height: 1;
+      letter-spacing: .14em;
+      font-weight: 900;
+    }
+
+    #overlay p {
+      margin: 7px 0 0;
+      color: #475569;
+      font-size: 11px;
+    }
   </style>
 </head>
+
 <body>
   <div id="overlay">
-    <h1>VISUALISASI JEMBATAN</h1>
-    <p>Tahan klik kiri untuk memutar · Scroll untuk zoom</p>
+    <h1>JEMBATAN SIROTU</h1>
+    <p>Drag: putar · Scroll: zoom · Klik kanan: geser</p>
   </div>
 
-  <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
-  
   <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@0.154.0/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.154.0/examples/jsm/"
-      }
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
     }
+  }
   </script>
 
   <script type="module">
-    import * as THREE from 'three';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import * as THREE from "three";
+    import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
-    // 1. Setup Scene, Camera, & Renderer
+    // ============================================================
+    // 1. SCENE / CAMERA / RENDERER
+    // ============================================================
+
     const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog('#87CEEB', 50, 250);
+    scene.background = new THREE.Color(0xeef2f3);
+    scene.fog = new THREE.Fog(0xeef2f3, 170, 360);
 
-    const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(60, 40, 80);
+    const camera = new THREE.PerspectiveCamera(
+      38,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000
+    );
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    // Sudut awal dibuat mendekati render perspektif pada PDF.
+    camera.position.set(118, 57, 92);
+
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: false
+    });
+
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.08;
     document.body.appendChild(renderer.domElement);
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.maxPolarAngle = Math.PI / 2 - 0.02; 
+    controls.dampingFactor = 0.06;
+    controls.target.set(0, 1.5, 0);
+    controls.minDistance = 55;
+    controls.maxDistance = 260;
+    controls.maxPolarAngle = Math.PI * 0.49;
 
-    // 2. Pencahayaan
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-    scene.add(ambientLight);
+    // ============================================================
+    // 2. LIGHTING
+    // ============================================================
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    dirLight.position.set(50, 80, 50);
-    dirLight.castShadow = true;
-    dirLight.shadow.camera.left = -100;
-    dirLight.shadow.camera.right = 100;
-    dirLight.shadow.camera.top = 100;
-    dirLight.shadow.camera.bottom = -100;
-    scene.add(dirLight);
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x7c8d72, 1.8));
 
-    // 3. Material (Disamakan dengan referensi PDF)
-    const redArchMat = new THREE.MeshStandardMaterial({ color: 0xff1111, roughness: 0.4 }); // Merah terang
-    const asphaltMat = new THREE.MeshStandardMaterial({ color: 0x3a3a3a, roughness: 0.9 });
-    const lineYellowMat = new THREE.MeshBasicMaterial({ color: 0xffcc00 });
-    const lineWhiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    const sidewalkMat = new THREE.MeshStandardMaterial({ color: 0xcccccc });
-    const cableMat = new THREE.MeshStandardMaterial({ color: 0x999999, metalness: 0.6 });
-    const riverMat = new THREE.MeshStandardMaterial({ color: 0x00ccff, flatShading: true, roughness: 0.1 }); // Biru cyan
-    const landMat = new THREE.MeshStandardMaterial({ color: 0x7cb342, flatShading: true }); // Hijau topografi
-    const dirtMat = new THREE.MeshStandardMaterial({ color: 0x8b5a2b }); // Cokelat tepi tanah
-    const lampMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.8 });
+    const sun = new THREE.DirectionalLight(0xffffff, 3.0);
+    sun.position.set(-70, 100, 80);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.camera.left = -130;
+    sun.shadow.camera.right = 130;
+    sun.shadow.camera.top = 100;
+    sun.shadow.camera.bottom = -100;
+    sun.shadow.camera.near = 1;
+    sun.shadow.camera.far = 300;
+    scene.add(sun);
 
-    const bridgeGroup = new THREE.Group();
+    // ============================================================
+    // 3. MATERIAL
+    // ============================================================
 
-    // 4. Membangun Struktur Jembatan
-    const deckLength = 160;
-    
-    // Dek Utama (Aspal)
-    const deckGeo = new THREE.BoxGeometry(deckLength, 1, 14);
-    const deck = new THREE.Mesh(deckGeo, asphaltMat);
-    deck.receiveShadow = true;
-    bridgeGroup.add(deck);
+    const steelRed = new THREE.MeshStandardMaterial({
+      color: 0xf23832,
+      metalness: 0.24,
+      roughness: 0.42
+    });
 
-    // Garis Kuning Ganda (Tengah)
-    const yLineGeo = new THREE.PlaneGeometry(deckLength, 0.25);
-    const yLine1 = new THREE.Mesh(yLineGeo, lineYellowMat);
-    yLine1.rotation.x = -Math.PI / 2;
-    yLine1.position.set(0, 0.51, 0.3);
-    bridgeGroup.add(yLine1);
-    
-    const yLine2 = new THREE.Mesh(yLineGeo, lineYellowMat);
-    yLine2.rotation.x = -Math.PI / 2;
-    yLine2.position.set(0, 0.51, -0.3);
-    bridgeGroup.add(yLine2);
+    const steelRedDark = new THREE.MeshStandardMaterial({
+      color: 0xcc2525,
+      metalness: 0.30,
+      roughness: 0.46
+    });
 
-    // Garis Putih (Tepi)
-    const wLineGeo = new THREE.PlaneGeometry(deckLength, 0.2);
-    const wLine1 = new THREE.Mesh(wLineGeo, lineWhiteMat);
-    wLine1.rotation.x = -Math.PI / 2;
-    wLine1.position.set(0, 0.51, 5.5);
-    bridgeGroup.add(wLine1);
-    
-    const wLine2 = new THREE.Mesh(wLineGeo, lineWhiteMat);
-    wLine2.rotation.x = -Math.PI / 2;
-    wLine2.position.set(0, 0.51, -5.5);
-    bridgeGroup.add(wLine2);
+    const hangerMat = new THREE.MeshStandardMaterial({
+      color: 0xc7a82d,
+      metalness: 0.45,
+      roughness: 0.42
+    });
 
-    // Trotoar/Tepian Jalan Putih
-    const sidewalkGeo = new THREE.BoxGeometry(deckLength, 1.4, 2.5);
-    const sw1 = new THREE.Mesh(sidewalkGeo, sidewalkMat);
-    sw1.position.set(0, 0.2, 7.25);
-    sw1.receiveShadow = true;
-    bridgeGroup.add(sw1);
-    
-    const sw2 = new THREE.Mesh(sidewalkGeo, sidewalkMat);
-    sw2.position.set(0, 0.2, -7.25);
-    sw2.receiveShadow = true;
-    bridgeGroup.add(sw2);
+    const asphaltMat = new THREE.MeshStandardMaterial({
+      color: 0x27292b,
+      roughness: 0.95
+    });
 
-    // Tiang Lampu Jalan
-    for (let x = -60; x <= 60; x += 30) {
-        // Kiri
-        const poleL = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.2, 7), lampMat);
-        poleL.position.set(x, 3.5, 7.8);
-        poleL.castShadow = true;
-        bridgeGroup.add(poleL);
-        const headL = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.2, 0.5), lampMat);
-        headL.position.set(x, 7, 7.3);
-        bridgeGroup.add(headL);
+    const concreteMat = new THREE.MeshStandardMaterial({
+      color: 0xc9c9c5,
+      roughness: 0.85
+    });
 
-        // Kanan
-        const poleR = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.2, 7), lampMat);
-        poleR.position.set(x, 3.5, -7.8);
-        poleR.castShadow = true;
-        bridgeGroup.add(poleR);
-        const headR = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.2, 0.5), lampMat);
-        headR.position.set(x, 7, -7.3);
-        bridgeGroup.add(headR);
+    const sidewalkMat = new THREE.MeshStandardMaterial({
+      color: 0xe9e7e0,
+      roughness: 0.85
+    });
+
+    const whitePaintMat = new THREE.MeshStandardMaterial({
+      color: 0xf8fafc,
+      roughness: 0.75
+    });
+
+    const yellowPaintMat = new THREE.MeshStandardMaterial({
+      color: 0xf2d30f,
+      roughness: 0.68
+    });
+
+    const railingMat = new THREE.MeshStandardMaterial({
+      color: 0xe9a2a2,
+      metalness: 0.16,
+      roughness: 0.52
+    });
+
+    const lampMat = new THREE.MeshStandardMaterial({
+      color: 0xd7ddd8,
+      metalness: 0.55,
+      roughness: 0.35
+    });
+
+    const waterMat = new THREE.MeshStandardMaterial({
+      color: 0x16b8df,
+      roughness: 0.2,
+      metalness: 0.02,
+      transparent: true,
+      opacity: 0.92
+    });
+
+    const landMat = new THREE.MeshStandardMaterial({
+      color: 0x718b55,
+      roughness: 1.0
+    });
+
+    const contourMat = new THREE.LineBasicMaterial({
+      color: 0x3f5638,
+      transparent: true,
+      opacity: 0.62
+    });
+
+    // ============================================================
+    // 4. DIMENSI UTAMA
+    // ============================================================
+
+    // Mengacu proporsi gambar teknik: panjang total 150 m dan lebar sekitar 10 m.
+    const BRIDGE_LENGTH = 150;
+    const DECK_WIDTH = 10;
+    const DECK_Y = 0;
+
+    // Arch tidak dibuat setengah lingkaran.
+    // Springing sedikit di bawah lantai dan puncak sekitar elevasi +14 m.
+    const ARCH_START = -58;
+    const ARCH_END = 58;
+    const ARCH_SPRING_Y = -3.4;
+    const ARCH_RISE = 18.0;
+
+    // Dua rib arch dimiringkan ke arah dalam.
+    const ARCH_BASE_HALF_WIDTH = 6.15;
+    const ARCH_TILT = THREE.MathUtils.degToRad(10);
+
+    const bridge = new THREE.Group();
+    scene.add(bridge);
+
+    // ============================================================
+    // 5. HELPER - BALOK ANTAR DUA TITIK
+    // ============================================================
+
+    function addBeam(p1, p2, height, width, material, parent = bridge) {
+      const a = p1.clone();
+      const b = p2.clone();
+      const dir = new THREE.Vector3().subVectors(b, a);
+      const length = dir.length();
+
+      const geometry = new THREE.BoxGeometry(length, height, width);
+      const mesh = new THREE.Mesh(geometry, material);
+
+      mesh.position.copy(a).add(b).multiplyScalar(0.5);
+      mesh.quaternion.setFromUnitVectors(
+        new THREE.Vector3(1, 0, 0),
+        dir.normalize()
+      );
+
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      parent.add(mesh);
+      return mesh;
     }
 
-    // Pelengkung Merah (Arch)
-    const archRadius = 50;
-    const archGeo = new THREE.TorusGeometry(archRadius, 1.5, 8, 64, Math.PI);
-    const archZOffset = 8;
-    
-    const arch1 = new THREE.Mesh(archGeo, redArchMat);
-    arch1.position.set(0, 0, archZOffset);
-    arch1.castShadow = true;
-    bridgeGroup.add(arch1);
+    function addCylinderBetween(p1, p2, radius, material, parent = bridge) {
+      const a = p1.clone();
+      const b = p2.clone();
+      const dir = new THREE.Vector3().subVectors(b, a);
+      const length = dir.length();
 
-    const arch2 = new THREE.Mesh(archGeo, redArchMat);
-    arch2.position.set(0, 0, -archZOffset);
-    arch2.castShadow = true;
-    bridgeGroup.add(arch2);
+      const geometry = new THREE.CylinderGeometry(
+        radius,
+        radius,
+        length,
+        10
+      );
 
-    // Hangers (Kabel) & Cross Bracing (Balok Melintang Merah)
-    for (let x = -40; x <= 40; x += 10) {
-      const height = Math.sqrt(archRadius * archRadius - x * x);
-      const cableGeo = new THREE.CylinderGeometry(0.1, 0.1, height);
-      
-      const c1 = new THREE.Mesh(cableGeo, cableMat);
-      c1.position.set(x, height / 2, archZOffset);
-      c1.castShadow = true;
-      bridgeGroup.add(c1);
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.copy(a).add(b).multiplyScalar(0.5);
 
-      const c2 = new THREE.Mesh(cableGeo, cableMat);
-      c2.position.set(x, height / 2, -archZOffset);
-      c2.castShadow = true;
-      bridgeGroup.add(c2);
+      mesh.quaternion.setFromUnitVectors(
+        new THREE.Vector3(0, 1, 0),
+        dir.normalize()
+      );
+
+      mesh.castShadow = true;
+      parent.add(mesh);
+      return mesh;
     }
 
-    // Balok melintang merah penghubung pelengkung
-    for (let a = 45; a < 140; a += 15) {
-      const rad = a * Math.PI / 180;
-      const hx = Math.cos(rad) * archRadius;
-      const hy = Math.sin(rad) * archRadius;
-      if (hy > 15) {
-         const strut = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, archZOffset * 2), redArchMat);
-         strut.position.set(hx, hy, 0);
-         strut.castShadow = true;
-         bridgeGroup.add(strut);
+    function archY(x) {
+      const t = (x - ARCH_START) / (ARCH_END - ARCH_START);
+      if (t < 0 || t > 1) return ARCH_SPRING_Y;
+
+      return ARCH_SPRING_Y + ARCH_RISE * 4 * t * (1 - t);
+    }
+
+    function archZ(x, side) {
+      const y = archY(x);
+      const inward = Math.tan(ARCH_TILT) * Math.max(0, y - ARCH_SPRING_Y);
+
+      return side * Math.max(
+        2.75,
+        ARCH_BASE_HALF_WIDTH - inward
+      );
+    }
+
+    function archPoint(x, side) {
+      return new THREE.Vector3(
+        x,
+        archY(x),
+        archZ(x, side)
+      );
+    }
+
+    // ============================================================
+    // 6. DECK / ROAD
+    // ============================================================
+
+    const slab = new THREE.Mesh(
+      new THREE.BoxGeometry(BRIDGE_LENGTH, 0.65, DECK_WIDTH + 1.0),
+      concreteMat
+    );
+    slab.position.y = DECK_Y - 0.30;
+    slab.castShadow = true;
+    slab.receiveShadow = true;
+    bridge.add(slab);
+
+    const asphalt = new THREE.Mesh(
+      new THREE.BoxGeometry(BRIDGE_LENGTH, 0.16, 7.2),
+      asphaltMat
+    );
+    asphalt.position.set(0, DECK_Y + 0.105, 0);
+    asphalt.receiveShadow = true;
+    bridge.add(asphalt);
+
+    // Trotoar kiri dan kanan
+    for (const side of [-1, 1]) {
+      const sidewalk = new THREE.Mesh(
+        new THREE.BoxGeometry(BRIDGE_LENGTH, 0.24, 1.2),
+        sidewalkMat
+      );
+
+      sidewalk.position.set(
+        0,
+        DECK_Y + 0.14,
+        side * 4.45
+      );
+
+      sidewalk.castShadow = true;
+      sidewalk.receiveShadow = true;
+      bridge.add(sidewalk);
+    }
+
+    // Marka tengah kuning
+    const centerLine = new THREE.Mesh(
+      new THREE.BoxGeometry(BRIDGE_LENGTH - 1, 0.035, 0.10),
+      yellowPaintMat
+    );
+    centerLine.position.set(0, DECK_Y + 0.205, 0);
+    bridge.add(centerLine);
+
+    // Marka tepi jalan putih
+    for (const z of [-3.38, 3.38]) {
+      const edgeLine = new THREE.Mesh(
+        new THREE.BoxGeometry(BRIDGE_LENGTH - 1, 0.03, 0.08),
+        whitePaintMat
+      );
+      edgeLine.position.set(0, DECK_Y + 0.205, z);
+      bridge.add(edgeLine);
+    }
+
+    // Gelagar tepi merah di sepanjang sisi dek
+    for (const side of [-1, 1]) {
+      const edgeGirder = new THREE.Mesh(
+        new THREE.BoxGeometry(BRIDGE_LENGTH, 0.62, 0.34),
+        steelRed
+      );
+      edgeGirder.position.set(
+        0,
+        DECK_Y - 0.57,
+        side * 5.22
+      );
+      edgeGirder.castShadow = true;
+      bridge.add(edgeGirder);
+    }
+
+    // ============================================================
+    // 7. MAIN ARCH RIBS - PARABOLA + KEMIRINGAN 10°
+    // ============================================================
+
+    const archStations = [];
+    const stationStep = 2;
+
+    for (let x = ARCH_START; x <= ARCH_END + 0.001; x += stationStep) {
+      archStations.push(Math.min(x, ARCH_END));
+    }
+
+    if (archStations[archStations.length - 1] !== ARCH_END) {
+      archStations.push(ARCH_END);
+    }
+
+    for (const side of [-1, 1]) {
+      for (let i = 0; i < archStations.length - 1; i++) {
+        const p1 = archPoint(archStations[i], side);
+        const p2 = archPoint(archStations[i + 1], side);
+
+        addBeam(
+          p1,
+          p2,
+          0.62,
+          0.72,
+          steelRed
+        );
       }
     }
 
-    bridgeGroup.position.y = 8;
-    scene.add(bridgeGroup);
+    // ============================================================
+    // 8. HANGERS
+    // ============================================================
 
-    // 5. Permukaan Sungai Cyan & Daratan Kontur Terluar
-    const river = new THREE.Mesh(new THREE.PlaneGeometry(500, 200), riverMat);
-    river.rotation.x = -Math.PI / 2;
-    river.position.y = 0;
-    river.receiveShadow = true;
-    scene.add(river);
+    // Dibuat rapat seperti tampak samping pada gambar struktur.
+    for (let x = -48; x <= 48; x += 6) {
+      for (const side of [-1, 1]) {
+        const top = archPoint(x, side);
 
-    // Fungsi membuat daratan berundak (Topografi)
-    function createTerrace(xOffset, isLeft) {
-      const group = new THREE.Group();
-      for(let i=0; i<5; i++) {
-        const width = 80 + i * 15;
-        const height = 2;
-        const depth = 200;
-        
-        // Hijau atas
-        const grass = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), landMat);
-        const posX = isLeft ? (-xOffset - i*7) : (xOffset + i*7);
-        grass.position.set(posX, i*2 + 1, 0);
-        grass.receiveShadow = true;
-        group.add(grass);
-        
-        // Cokelat bawah (tanah)
-        const dirt = new THREE.Mesh(new THREE.BoxGeometry(width+0.2, height-0.2, depth+0.2), dirtMat);
-        const dirtX = isLeft ? posX + 0.1 : posX - 0.1;
-        dirt.position.set(dirtX, i*2 + 0.9, 0);
-        group.add(dirt);
+        const bottom = new THREE.Vector3(
+          x,
+          DECK_Y + 0.32,
+          side * 5.05
+        );
+
+        addCylinderBetween(
+          bottom,
+          top,
+          0.075,
+          hangerMat
+        );
       }
-      return group;
     }
 
-    scene.add(createTerrace(80, true));  // Bank Kiri
-    scene.add(createTerrace(80, false)); // Bank Kanan
+    // ============================================================
+    // 9. TOP CROSS BRACING ANTAR ARCH
+    // ============================================================
 
-    // 6. Render Loop
+    // Bracing hanya ditempatkan di bagian yang cukup tinggi,
+    // seperti pada model referensi.
+    const topBraceStations = [-36, -28, -20, -12, -4, 4, 12, 20, 28, 36];
+
+    for (const x of topBraceStations) {
+      addBeam(
+        archPoint(x, -1),
+        archPoint(x, 1),
+        0.28,
+        0.28,
+        steelRedDark
+      );
+    }
+
+    // Pola diagonal zig-zag di antara kedua rib.
+    for (let i = 0; i < topBraceStations.length - 1; i++) {
+      const x1 = topBraceStations[i];
+      const x2 = topBraceStations[i + 1];
+
+      if (i % 2 === 0) {
+        addBeam(
+          archPoint(x1, -1),
+          archPoint(x2, 1),
+          0.22,
+          0.22,
+          steelRedDark
+        );
+      } else {
+        addBeam(
+          archPoint(x1, 1),
+          archPoint(x2, -1),
+          0.22,
+          0.22,
+          steelRedDark
+        );
+      }
+    }
+
+    // ============================================================
+    // 10. FLOOR CROSS GIRDERS
+    // ============================================================
+
+    for (let x = -72.5; x <= 72.5; x += 5) {
+      addBeam(
+        new THREE.Vector3(x, DECK_Y - 0.72, -5.35),
+        new THREE.Vector3(x, DECK_Y - 0.72, 5.35),
+        0.34,
+        0.38,
+        steelRedDark
+      );
+    }
+
+    // ============================================================
+    // 11. SIDE TRUSS DI BAWAH DECK
+    // ============================================================
+
+    for (const side of [-1, 1]) {
+      const z = side * 5.25;
+      const topY = DECK_Y - 0.52;
+      const bottomY = DECK_Y - 1.75;
+
+      addBeam(
+        new THREE.Vector3(-75, bottomY, z),
+        new THREE.Vector3(75, bottomY, z),
+        0.28,
+        0.32,
+        steelRed
+      );
+
+      for (let x = -75; x < 75; x += 5) {
+        // Vertikal
+        addBeam(
+          new THREE.Vector3(x, topY, z),
+          new THREE.Vector3(x, bottomY, z),
+          0.22,
+          0.22,
+          steelRedDark
+        );
+
+        // Diagonal bergantian.
+        const nextX = Math.min(x + 5, 75);
+        const diagonalUp =
+          (Math.floor((x + 75) / 5) % 2 === 0);
+
+        if (diagonalUp) {
+          addBeam(
+            new THREE.Vector3(x, bottomY, z),
+            new THREE.Vector3(nextX, topY, z),
+            0.20,
+            0.20,
+            steelRedDark
+          );
+        } else {
+          addBeam(
+            new THREE.Vector3(x, topY, z),
+            new THREE.Vector3(nextX, bottomY, z),
+            0.20,
+            0.20,
+            steelRedDark
+          );
+        }
+      }
+    }
+
+    // ============================================================
+    // 12. UNDER-DECK V / TRIANGULAR BRACING DEKAT SPRINGING
+    // ============================================================
+
+    // Bentuk bawah jembatan pada referensi mempunyai elemen merah
+    // turun di sekitar awal/akhir arch.
+    for (const side of [-1, 1]) {
+      const z = side * 5.0;
+
+      // Kiri
+      addBeam(
+        new THREE.Vector3(-67, -0.7, z),
+        new THREE.Vector3(-53, -6.4, z),
+        0.40,
+        0.44,
+        steelRed
+      );
+
+      addBeam(
+        new THREE.Vector3(-53, -6.4, z),
+        new THREE.Vector3(-39, -0.7, z),
+        0.40,
+        0.44,
+        steelRed
+      );
+
+      // Kanan
+      addBeam(
+        new THREE.Vector3(39, -0.7, z),
+        new THREE.Vector3(53, -6.4, z),
+        0.40,
+        0.44,
+        steelRed
+      );
+
+      addBeam(
+        new THREE.Vector3(53, -6.4, z),
+        new THREE.Vector3(67, -0.7, z),
+        0.40,
+        0.44,
+        steelRed
+      );
+    }
+
+    // ============================================================
+    // 13. RAILING
+    // ============================================================
+
+    for (const side of [-1, 1]) {
+      const z = side * 5.05;
+
+      // Handrail memanjang
+      addBeam(
+        new THREE.Vector3(-75, 1.18, z),
+        new THREE.Vector3(75, 1.18, z),
+        0.12,
+        0.12,
+        railingMat
+      );
+
+      addBeam(
+        new THREE.Vector3(-75, 0.70, z),
+        new THREE.Vector3(75, 0.70, z),
+        0.08,
+        0.08,
+        railingMat
+      );
+
+      // Tiang railing
+      for (let x = -75; x <= 75; x += 3) {
+        addCylinderBetween(
+          new THREE.Vector3(x, 0.25, z),
+          new THREE.Vector3(x, 1.18, z),
+          0.035,
+          railingMat
+        );
+      }
+    }
+
+    // ============================================================
+    // 14. LAMPU JALAN
+    // ============================================================
+
+    function addLamp(x, side) {
+      const z = side * 4.72;
+
+      addCylinderBetween(
+        new THREE.Vector3(x, 0.35, z),
+        new THREE.Vector3(x, 3.1, z),
+        0.055,
+        lampMat
+      );
+
+      const armEnd = new THREE.Vector3(
+        x,
+        3.15,
+        z - side * 0.72
+      );
+
+      addCylinderBetween(
+        new THREE.Vector3(x, 3.08, z),
+        armEnd,
+        0.045,
+        lampMat
+      );
+
+      const lampHead = new THREE.Mesh(
+        new THREE.BoxGeometry(0.48, 0.12, 0.20),
+        lampMat
+      );
+
+      lampHead.position.copy(armEnd);
+      lampHead.position.z -= side * 0.15;
+      lampHead.castShadow = true;
+      bridge.add(lampHead);
+    }
+
+    for (let x = -67.5; x <= 67.5; x += 15) {
+      addLamp(x, -1);
+      addLamp(x + 7.5, 1);
+    }
+
+    // ============================================================
+    // 15. ABUTMENT RINGAN
+    // ============================================================
+
+    for (const x of [-73, 73]) {
+      const abutment = new THREE.Mesh(
+        new THREE.BoxGeometry(5.0, 5.0, 11.5),
+        concreteMat
+      );
+
+      abutment.position.set(x, -3.0, 0);
+      abutment.castShadow = true;
+      abutment.receiveShadow = true;
+      bridge.add(abutment);
+    }
+
+    // ============================================================
+    // 16. WATER + LAND
+    // ============================================================
+
+    const water = new THREE.Mesh(
+      new THREE.PlaneGeometry(125, 155),
+      waterMat
+    );
+    water.rotation.x = -Math.PI / 2;
+    water.position.set(0, -7.15, 0);
+    water.receiveShadow = true;
+    scene.add(water);
+
+    function addLand(x, width) {
+      const land = new THREE.Mesh(
+        new THREE.PlaneGeometry(width, 180),
+        landMat
+      );
+
+      land.rotation.x = -Math.PI / 2;
+      land.position.set(x, -6.95, 0);
+      land.receiveShadow = true;
+      scene.add(land);
+    }
+
+    addLand(-107, 90);
+    addLand(107, 90);
+
+    // Jalan pendek di daratan untuk membuat deck terasa menyatu dengan tapak.
+    for (const x of [-105, 105]) {
+      const approach = new THREE.Mesh(
+        new THREE.BoxGeometry(60, 0.12, 8.5),
+        asphaltMat
+      );
+      approach.position.set(x, 0.04, 0);
+      approach.receiveShadow = true;
+      scene.add(approach);
+
+      const approachCenter = new THREE.Mesh(
+        new THREE.BoxGeometry(59, 0.025, 0.10),
+        yellowPaintMat
+      );
+      approachCenter.position.set(x, 0.115, 0);
+      scene.add(approachCenter);
+    }
+
+    // Garis kontur sederhana di kedua bank agar nuansa tapak mendekati PDF.
+    function addContourSet(side) {
+      const baseX = side < 0 ? -138 : 138;
+
+      for (let i = 0; i < 9; i++) {
+        const x0 = baseX - side * i * 5.2;
+        const points = [
+          new THREE.Vector3(x0, -6.82 + i * 0.02, -80),
+          new THREE.Vector3(x0 + side * 5, -6.82 + i * 0.02, -45),
+          new THREE.Vector3(x0 + side * 10, -6.82 + i * 0.02, -15),
+          new THREE.Vector3(x0 + side * 8, -6.82 + i * 0.02, 20),
+          new THREE.Vector3(x0 + side * 2, -6.82 + i * 0.02, 55),
+          new THREE.Vector3(x0, -6.82 + i * 0.02, 80)
+        ];
+
+        const geo = new THREE.BufferGeometry().setFromPoints(points);
+        scene.add(new THREE.Line(geo, contourMat));
+      }
+    }
+
+    addContourSet(-1);
+    addContourSet(1);
+
+    // ============================================================
+    // 17. ANIMATION
+    // ============================================================
+
     function animate() {
       requestAnimationFrame(animate);
       controls.update();
       renderer.render(scene, camera);
     }
+
     animate();
 
-    // 7. Auto-Resize Canvas
-    window.addEventListener('resize', () => {
+    window.addEventListener("resize", () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
