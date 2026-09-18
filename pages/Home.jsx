@@ -64,7 +64,7 @@ const stats = [
   },
   {
     icon: Activity,
-    value: '27.20°',
+    value: '10°',
     label: 'Kemiringan Pelengkung',
   },
   {
@@ -121,7 +121,13 @@ const Home = () => {
           variants={staggerContainer}
           className="mx-auto max-w-5xl text-center"
         >
-      
+          <motion.div
+            variants={fadeUp}
+            className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 shadow-sm"
+          >
+            <Sparkles size={16} />
+            Infrastruktur Tangguh & Berkelanjutan
+          </motion.div>
 
           <motion.h1
             variants={fadeUp}
@@ -176,11 +182,11 @@ const Home = () => {
           className="mx-auto mt-16 max-w-6xl md:mt-20"
         >
           <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-2 shadow-xl shadow-slate-200/60 md:rounded-[2.5rem] md:p-3">
-            <div className="h-[330px] overflow-hidden rounded-[1.5rem] bg-slate-100 sm:h-[420px] md:h-[520px] md:rounded-[2rem]">
+            <div className="h-[300px] overflow-hidden rounded-[1.5rem] bg-slate-100 sm:h-[400px] md:h-[520px] md:rounded-[2rem]">
               <iframe
                 src="/jembatan-3d.html"
                 className="h-full w-full border-0"
-                title="Render 3D Jembatan Pelengkung Sirotu"
+                title="Visualisasi 3D Jembatan Sirotu"
               />
             </div>
           </div>
@@ -255,7 +261,7 @@ const Home = () => {
             <div className="mt-8 space-y-4">
               {[
                 'Railing menggunakan inspirasi ornamen khas Palu-Donggala.',
-                'Pelengkung miring 27.20° menjadi bagian dari identitas visual struktur.',
+                'Pelengkung miring 10° menjadi bagian dari identitas visual struktur.',
                 'Desain menggabungkan fungsi, keamanan, efisiensi, dan nilai lokal.',
               ].map((item, index) => (
                 <motion.div
@@ -313,7 +319,7 @@ const Home = () => {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="rounded-2xl border border-red-100 bg-red-50 p-4">
-                    <p className="text-2xl font-black text-red-700">27.20°</p>
+                    <p className="text-2xl font-black text-red-700">10°</p>
                     <p className="mt-1 text-sm text-slate-600">
                       Kemiringan pelengkung
                     </p>
