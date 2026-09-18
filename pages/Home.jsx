@@ -64,7 +64,7 @@ const stats = [
   },
   {
     icon: Activity,
-    value: '10°',
+    value: '27.20°',
     label: 'Kemiringan Pelengkung',
   },
   {
@@ -255,7 +255,7 @@ const Home = () => {
             <div className="mt-8 space-y-4">
               {[
                 'Railing menggunakan inspirasi ornamen khas Palu-Donggala.',
-                'Pelengkung miring 10° menjadi bagian dari identitas visual struktur.',
+                'Pelengkung miring 27.20° menjadi bagian dari identitas visual struktur.',
                 'Desain menggabungkan fungsi, keamanan, efisiensi, dan nilai lokal.',
               ].map((item, index) => (
                 <motion.div
@@ -313,7 +313,7 @@ const Home = () => {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="rounded-2xl border border-red-100 bg-red-50 p-4">
-                    <p className="text-2xl font-black text-red-700">10°</p>
+                    <p className="text-2xl font-black text-red-700">27.20°</p>
                     <p className="mt-1 text-sm text-slate-600">
                       Kemiringan pelengkung
                     </p>
