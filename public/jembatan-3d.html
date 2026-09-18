@@ -28,10 +28,9 @@
       top: 18px;
       left: 22px;
       z-index: 10;
-      pointer-events: none;
       padding: 12px 14px;
       border-radius: 14px;
-      background: rgba(255,255,255,.78);
+      background: rgba(255,255,255,.84);
       border: 1px solid rgba(15,23,42,.08);
       box-shadow: 0 8px 30px rgba(15,23,42,.08);
       backdrop-filter: blur(10px);
@@ -47,9 +46,30 @@
     }
 
     #overlay p {
-      margin: 7px 0 0;
+      margin: 7px 0 10px;
       color: #475569;
       font-size: 11px;
+    }
+
+    #overlay .buttons {
+      display: flex;
+      gap: 7px;
+    }
+
+    #overlay button {
+      border: 0;
+      border-radius: 999px;
+      padding: 7px 10px;
+      cursor: pointer;
+      font-size: 10px;
+      font-weight: 700;
+      background: #b91c1c;
+      color: #fff;
+    }
+
+    #overlay button.secondary {
+      background: #e5e7eb;
+      color: #334155;
     }
   </style>
 </head>
@@ -58,6 +78,10 @@
   <div id="overlay">
     <h1>JEMBATAN SIROTU</h1>
     <p>Drag: putar · Scroll: zoom · Klik kanan: geser</p>
+    <div class="buttons">
+      <button id="resetCamera">Reset kamera</button>
+      <button id="toggleTraffic" class="secondary">Pause mobil</button>
+    </div>
   </div>
 
   <script type="importmap">
@@ -79,7 +103,7 @@
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xeef2f3);
-    scene.fog = new THREE.Fog(0xeef2f3, 170, 360);
+    scene.fog = new THREE.Fog(0xeef2f3, 175, 360);
 
     const camera = new THREE.PerspectiveCamera(
       38,
@@ -88,47 +112,42 @@
       1000
     );
 
-    // Sudut awal dibuat mendekati render perspektif pada PDF.
-    camera.position.set(118, 57, 92);
+    camera.position.set(118, 56, 92);
 
-    const renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      alpha: false
-    });
-
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.08;
+    renderer.toneMappingExposure = 1.06;
     document.body.appendChild(renderer.domElement);
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.06;
-    controls.target.set(0, 1.5, 0);
-    controls.minDistance = 55;
-    controls.maxDistance = 260;
-    controls.maxPolarAngle = Math.PI * 0.49;
+    controls.target.set(0, 1.4, 0);
+    controls.minDistance = 48;
+    controls.maxDistance = 280;
+    controls.maxPolarAngle = Math.PI * 0.495;
 
     // ============================================================
-    // 2. LIGHTING
+    // 2. LIGHT
     // ============================================================
 
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x7c8d72, 1.8));
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x75896a, 1.8));
 
-    const sun = new THREE.DirectionalLight(0xffffff, 3.0);
-    sun.position.set(-70, 100, 80);
+    const sun = new THREE.DirectionalLight(0xffffff, 2.9);
+    sun.position.set(-75, 105, 80);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
-    sun.shadow.camera.left = -130;
-    sun.shadow.camera.right = 130;
+    sun.shadow.camera.left = -140;
+    sun.shadow.camera.right = 140;
     sun.shadow.camera.top = 100;
     sun.shadow.camera.bottom = -100;
     sun.shadow.camera.near = 1;
-    sun.shadow.camera.far = 300;
+    sun.shadow.camera.far = 320;
     scene.add(sun);
 
     // ============================================================
@@ -141,99 +160,107 @@
       roughness: 0.42
     });
 
-    const steelRedDark = new THREE.MeshStandardMaterial({
-      color: 0xcc2525,
-      metalness: 0.30,
-      roughness: 0.46
+    const steelDark = new THREE.MeshStandardMaterial({
+      color: 0xc72525,
+      metalness: 0.32,
+      roughness: 0.42
     });
 
     const hangerMat = new THREE.MeshStandardMaterial({
-      color: 0xc7a82d,
-      metalness: 0.45,
-      roughness: 0.42
+      color: 0xc5a632,
+      metalness: 0.48,
+      roughness: 0.36
     });
 
     const asphaltMat = new THREE.MeshStandardMaterial({
       color: 0x27292b,
-      roughness: 0.95
+      roughness: 0.96
     });
 
     const concreteMat = new THREE.MeshStandardMaterial({
-      color: 0xc9c9c5,
-      roughness: 0.85
+      color: 0xc8c8c2,
+      roughness: 0.88
     });
 
     const sidewalkMat = new THREE.MeshStandardMaterial({
-      color: 0xe9e7e0,
-      roughness: 0.85
+      color: 0xe7e4dc,
+      roughness: 0.86
     });
 
     const whitePaintMat = new THREE.MeshStandardMaterial({
-      color: 0xf8fafc,
-      roughness: 0.75
+      color: 0xffffff,
+      roughness: 0.72
     });
 
     const yellowPaintMat = new THREE.MeshStandardMaterial({
-      color: 0xf2d30f,
-      roughness: 0.68
+      color: 0xf1cf12,
+      roughness: 0.70
     });
 
     const railingMat = new THREE.MeshStandardMaterial({
-      color: 0xe9a2a2,
-      metalness: 0.16,
-      roughness: 0.52
+      color: 0xe4a0a0,
+      metalness: 0.18,
+      roughness: 0.50
     });
 
     const lampMat = new THREE.MeshStandardMaterial({
-      color: 0xd7ddd8,
+      color: 0xd7ddda,
       metalness: 0.55,
-      roughness: 0.35
+      roughness: 0.34
+    });
+
+    const bearingMat = new THREE.MeshStandardMaterial({
+      color: 0x3f4449,
+      metalness: 0.72,
+      roughness: 0.26
+    });
+
+    const boltMat = new THREE.MeshStandardMaterial({
+      color: 0x9ca3a8,
+      metalness: 0.86,
+      roughness: 0.20
     });
 
     const waterMat = new THREE.MeshStandardMaterial({
-      color: 0x16b8df,
-      roughness: 0.2,
-      metalness: 0.02,
+      color: 0x17b9dc,
+      roughness: 0.20,
       transparent: true,
       opacity: 0.92
     });
 
     const landMat = new THREE.MeshStandardMaterial({
-      color: 0x718b55,
+      color: 0x748d57,
       roughness: 1.0
     });
 
     const contourMat = new THREE.LineBasicMaterial({
-      color: 0x3f5638,
+      color: 0x40583a,
       transparent: true,
-      opacity: 0.62
+      opacity: 0.60
     });
 
     // ============================================================
     // 4. DIMENSI UTAMA
     // ============================================================
 
-    // Mengacu proporsi gambar teknik: panjang total 150 m dan lebar sekitar 10 m.
+    // Koordinat model dipusatkan di tengah jembatan:
+// STA 0 = x -75, STA 25 = x -50, STA 125 = x +50, STA 150 = x +75.
     const BRIDGE_LENGTH = 150;
     const DECK_WIDTH = 10;
     const DECK_Y = 0;
 
-    // Arch tidak dibuat setengah lingkaran.
-    // Springing sedikit di bawah lantai dan puncak sekitar elevasi +14 m.
-    const ARCH_START = -58;
-    const ARCH_END = 58;
-    const ARCH_SPRING_Y = -3.4;
-    const ARCH_RISE = 18.0;
-
-    // Dua rib arch dimiringkan ke arah dalam.
-    const ARCH_BASE_HALF_WIDTH = 6.15;
+    const ARCH_START = -50; // STA 25 m
+    const ARCH_END = 50; // STA 125 m
+    const ARCH_SPRING_Y = -2.35;
+    const ARCH_RISE = 16.2;
+    const ARCH_BASE_HALF_WIDTH = 6.05;
     const ARCH_TILT = THREE.MathUtils.degToRad(10);
 
     const bridge = new THREE.Group();
     scene.add(bridge);
 
     // ============================================================
-    // 5. HELPER - BALOK ANTAR DUA TITIK
+    // 5. HELPER
     // ============================================================
 
     function addBeam(p1, p2, height, width, material, parent = bridge) {
@@ -242,8 +269,10 @@
       const dir = new THREE.Vector3().subVectors(b, a);
       const length = dir.length();
 
-      const geometry = new THREE.BoxGeometry(length, height, width);
-      const mesh = new THREE.Mesh(geometry, material);
+      const mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(length, height, width),
+        material
+      );
 
       mesh.position.copy(a).add(b).multiplyScalar(0.5);
       mesh.quaternion.setFromUnitVectors(
@@ -257,22 +286,18 @@
       return mesh;
     }
 
-    function addCylinderBetween(p1, p2, radius, material, parent = bridge) {
+    function addCylinderBetween(p1, p2, radius, material, parent = bridge, segments = 10) {
       const a = p1.clone();
       const b = p2.clone();
       const dir = new THREE.Vector3().subVectors(b, a);
       const length = dir.length();
 
-      const geometry = new THREE.CylinderGeometry(
-        radius,
-        radius,
-        length,
-        10
+      const mesh = new THREE.Mesh(
+        new THREE.CylinderGeometry(radius, radius, length, segments),
+        material
       );
 
-      const mesh = new THREE.Mesh(geometry, material);
       mesh.position.copy(a).add(b).multiplyScalar(0.5);
-
       mesh.quaternion.setFromUnitVectors(
         new THREE.Vector3(0, 1, 0),
         dir.normalize()
@@ -286,26 +311,17 @@
     function archY(x) {
       const t = (x - ARCH_START) / (ARCH_END - ARCH_START);
       if (t < 0 || t > 1) return ARCH_SPRING_Y;
-
       return ARCH_SPRING_Y + ARCH_RISE * 4 * t * (1 - t);
     }
 
     function archZ(x, side) {
       const y = archY(x);
       const inward = Math.tan(ARCH_TILT) * Math.max(0, y - ARCH_SPRING_Y);
-
-      return side * Math.max(
-        2.75,
-        ARCH_BASE_HALF_WIDTH - inward
-      );
+      return side * Math.max(2.95, ARCH_BASE_HALF_WIDTH - inward);
     }
 
     function archPoint(x, side) {
-      return new THREE.Vector3(
-        x,
-        archY(x),
-        archZ(x, side)
-      );
+      return new THREE.Vector3(x, archY(x), archZ(x, side));
     }
 
     // ============================================================
@@ -313,98 +329,78 @@
     // ============================================================
 
     const slab = new THREE.Mesh(
-      new THREE.BoxGeometry(BRIDGE_LENGTH, 0.65, DECK_WIDTH + 1.0),
+      new THREE.BoxGeometry(BRIDGE_LENGTH, 0.62, DECK_WIDTH + 1.0),
       concreteMat
     );
-    slab.position.y = DECK_Y - 0.30;
+    slab.position.y = DECK_Y - 0.31;
     slab.castShadow = true;
     slab.receiveShadow = true;
     bridge.add(slab);
 
     const asphalt = new THREE.Mesh(
-      new THREE.BoxGeometry(BRIDGE_LENGTH, 0.16, 7.2),
+      new THREE.BoxGeometry(BRIDGE_LENGTH, 0.16, 7.15),
       asphaltMat
     );
-    asphalt.position.set(0, DECK_Y + 0.105, 0);
+    asphalt.position.set(0, DECK_Y + 0.095, 0);
     asphalt.receiveShadow = true;
     bridge.add(asphalt);
 
-    // Trotoar kiri dan kanan
     for (const side of [-1, 1]) {
       const sidewalk = new THREE.Mesh(
         new THREE.BoxGeometry(BRIDGE_LENGTH, 0.24, 1.2),
         sidewalkMat
       );
-
-      sidewalk.position.set(
-        0,
-        DECK_Y + 0.14,
-        side * 4.45
-      );
-
+      sidewalk.position.set(0, DECK_Y + 0.14, side * 4.45);
       sidewalk.castShadow = true;
       sidewalk.receiveShadow = true;
       bridge.add(sidewalk);
     }
 
-    // Marka tengah kuning
     const centerLine = new THREE.Mesh(
-      new THREE.BoxGeometry(BRIDGE_LENGTH - 1, 0.035, 0.10),
+      new THREE.BoxGeometry(BRIDGE_LENGTH - 1, 0.032, 0.10),
       yellowPaintMat
     );
-    centerLine.position.set(0, DECK_Y + 0.205, 0);
+    centerLine.position.set(0, DECK_Y + 0.195, 0);
     bridge.add(centerLine);
 
-    // Marka tepi jalan putih
-    for (const z of [-3.38, 3.38]) {
+    for (const z of [-3.36, 3.36]) {
       const edgeLine = new THREE.Mesh(
-        new THREE.BoxGeometry(BRIDGE_LENGTH - 1, 0.03, 0.08),
+        new THREE.BoxGeometry(BRIDGE_LENGTH - 1, 0.026, 0.075),
         whitePaintMat
       );
-      edgeLine.position.set(0, DECK_Y + 0.205, z);
+      edgeLine.position.set(0, DECK_Y + 0.196, z);
       bridge.add(edgeLine);
     }
 
-    // Gelagar tepi merah di sepanjang sisi dek
     for (const side of [-1, 1]) {
       const edgeGirder = new THREE.Mesh(
         new THREE.BoxGeometry(BRIDGE_LENGTH, 0.62, 0.34),
         steelRed
       );
-      edgeGirder.position.set(
-        0,
-        DECK_Y - 0.57,
-        side * 5.22
-      );
+      edgeGirder.position.set(0, DECK_Y - 0.60, side * 5.20);
       edgeGirder.castShadow = true;
       bridge.add(edgeGirder);
     }
 
     // ============================================================
-    // 7. MAIN ARCH RIBS - PARABOLA + KEMIRINGAN 10°
+    // 7. MAIN ARCH RIBS
     // ============================================================
 
     const archStations = [];
-    const stationStep = 2;
-
-    for (let x = ARCH_START; x <= ARCH_END + 0.001; x += stationStep) {
-      archStations.push(Math.min(x, ARCH_END));
+    for (let x = ARCH_START; x <= ARCH_END; x += 2) {
+      archStations.push(x);
     }
-
     if (archStations[archStations.length - 1] !== ARCH_END) {
       archStations.push(ARCH_END);
     }
 
     for (const side of [-1, 1]) {
       for (let i = 0; i < archStations.length - 1; i++) {
-        const p1 = archPoint(archStations[i], side);
-        const p2 = archPoint(archStations[i + 1], side);
-
         addBeam(
-          p1,
-          p2,
-          0.62,
-          0.72,
+          archPoint(archStations[i], side),
+          archPoint(archStations[i + 1], side),
+          0.58,
+          0.68,
           steelRed
         );
       }
@@ -414,176 +410,257 @@
     // 8. HANGERS
     // ============================================================
 
-    // Dibuat rapat seperti tampak samping pada gambar struktur.
     for (let x = -48; x <= 48; x += 6) {
       for (const side of [-1, 1]) {
         const top = archPoint(x, side);
+        const bottom = new THREE.Vector3(x, DECK_Y + 0.30, side * 5.02);
 
-        const bottom = new THREE.Vector3(
-          x,
-          DECK_Y + 0.32,
-          side * 5.05
-        );
-
-        addCylinderBetween(
-          bottom,
-          top,
-          0.075,
-          hangerMat
-        );
+        if (top.y > bottom.y + 0.6) {
+          addCylinderBetween(bottom, top, 0.055, hangerMat);
+        }
       }
     }
 
     // ============================================================
-    // 9. TOP CROSS BRACING ANTAR ARCH
+    // 9. BRACING ATAS - HANYA GARIS MELINTANG, TANPA X / DIAGONAL
     // ============================================================
 
-    // Bracing hanya ditempatkan di bagian yang cukup tinggi,
-    // seperti pada model referensi.
-    const topBraceStations = [-36, -28, -20, -12, -4, 4, 12, 20, 28, 36];
+    const topCrossStations = [-37, -29, -21, -13, -5, 5, 13, 21, 29, 37];
 
-    for (const x of topBraceStations) {
+    for (const x of topCrossStations) {
       addBeam(
         archPoint(x, -1),
         archPoint(x, 1),
-        0.28,
-        0.28,
-        steelRedDark
+        0.20,
+        0.24,
+        steelDark
       );
     }
 
-    // Pola diagonal zig-zag di antara kedua rib.
-    for (let i = 0; i < topBraceStations.length - 1; i++) {
-      const x1 = topBraceStations[i];
-      const x2 = topBraceStations[i + 1];
-
-      if (i % 2 === 0) {
-        addBeam(
-          archPoint(x1, -1),
-          archPoint(x2, 1),
-          0.22,
-          0.22,
-          steelRedDark
-        );
-      } else {
-        addBeam(
-          archPoint(x1, 1),
-          archPoint(x2, -1),
-          0.22,
-          0.22,
-          steelRedDark
-        );
-      }
-    }
-
     // ============================================================
-    // 10. FLOOR CROSS GIRDERS
+    // 10. FLOOR SYSTEM
     // ============================================================
 
     for (let x = -72.5; x <= 72.5; x += 5) {
       addBeam(
         new THREE.Vector3(x, DECK_Y - 0.72, -5.35),
         new THREE.Vector3(x, DECK_Y - 0.72, 5.35),
+        0.30,
         0.34,
-        0.38,
-        steelRedDark
+        steelDark
       );
     }
 
-    // ============================================================
-    // 11. SIDE TRUSS DI BAWAH DECK
-    // ============================================================
-
+    // Side truss di bawah deck.
     for (const side of [-1, 1]) {
-      const z = side * 5.25;
-      const topY = DECK_Y - 0.52;
-      const bottomY = DECK_Y - 1.75;
+      const z = side * 5.22;
+      const upperY = DECK_Y - 0.50;
+      const lowerY = DECK_Y - 1.62;
 
       addBeam(
-        new THREE.Vector3(-75, bottomY, z),
-        new THREE.Vector3(75, bottomY, z),
+        new THREE.Vector3(-75, lowerY, z),
+        new THREE.Vector3(75, lowerY, z),
+        0.25,
         0.28,
-        0.32,
         steelRed
       );
 
       for (let x = -75; x < 75; x += 5) {
-        // Vertikal
+        const nextX = Math.min(x + 5, 75);
+
         addBeam(
-          new THREE.Vector3(x, topY, z),
-          new THREE.Vector3(x, bottomY, z),
-          0.22,
-          0.22,
-          steelRedDark
+          new THREE.Vector3(x, upperY, z),
+          new THREE.Vector3(x, lowerY, z),
+          0.18,
+          0.18,
+          steelDark
         );
 
-        // Diagonal bergantian.
-        const nextX = Math.min(x + 5, 75);
-        const diagonalUp =
-          (Math.floor((x + 75) / 5) % 2 === 0);
+        const alternate = Math.floor((x + 75) / 5) % 2 === 0;
 
-        if (diagonalUp) {
+        if (alternate) {
           addBeam(
-            new THREE.Vector3(x, bottomY, z),
-            new THREE.Vector3(nextX, topY, z),
-            0.20,
-            0.20,
-            steelRedDark
+            new THREE.Vector3(x, lowerY, z),
+            new THREE.Vector3(nextX, upperY, z),
+            0.16,
+            0.16,
+            steelDark
           );
         } else {
           addBeam(
-            new THREE.Vector3(x, topY, z),
-            new THREE.Vector3(nextX, bottomY, z),
-            0.20,
-            0.20,
-            steelRedDark
+            new THREE.Vector3(x, upperY, z),
+            new THREE.Vector3(nextX, lowerY, z),
+            0.16,
+            0.16,
+            steelDark
           );
         }
       }
     }
 
     // ============================================================
-    // 12. UNDER-DECK V / TRIANGULAR BRACING DEKAT SPRINGING
+    // 11. UNDER-BRACING KAKI ARCH
     // ============================================================
 
-    // Bentuk bawah jembatan pada referensi mempunyai elemen merah
-    // turun di sekitar awal/akhir arch.
     for (const side of [-1, 1]) {
       const z = side * 5.0;
 
-      // Kiri
+      // Kiri: kaki/tumpuan tepat di STA 25 m (local x = -50).
       addBeam(
-        new THREE.Vector3(-67, -0.7, z),
-        new THREE.Vector3(-53, -6.4, z),
-        0.40,
-        0.44,
+        new THREE.Vector3(-64, -0.68, z),
+        new THREE.Vector3(-50, -5.45, z),
+        0.34,
+        0.38,
         steelRed
       );
 
       addBeam(
-        new THREE.Vector3(-53, -6.4, z),
-        new THREE.Vector3(-39, -0.7, z),
-        0.40,
-        0.44,
+        new THREE.Vector3(-50, -5.45, z),
+        new THREE.Vector3(-36, -0.68, z),
+        0.34,
+        0.38,
         steelRed
       );
 
-      // Kanan
+      // Kanan: kaki/tumpuan tepat di STA 125 m (local x = +50).
       addBeam(
-        new THREE.Vector3(39, -0.7, z),
-        new THREE.Vector3(53, -6.4, z),
-        0.40,
-        0.44,
+        new THREE.Vector3(36, -0.68, z),
+        new THREE.Vector3(50, -5.45, z),
+        0.34,
+        0.38,
         steelRed
       );
 
       addBeam(
-        new THREE.Vector3(53, -6.4, z),
-        new THREE.Vector3(67, -0.7, z),
-        0.40,
-        0.44,
+        new THREE.Vector3(50, -5.45, z),
+        new THREE.Vector3(64, -0.68, z),
+        0.34,
+        0.38,
         steelRed
       );
+    }
+
+    // ============================================================
+    // 12. TUMPUAN ARCH + BASE PLATE + PIN + BAUT 3D
+    // ============================================================
+
+    function createNut(position) {
+      const nut = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.20, 0.20, 0.16, 6),
+        boltMat
+      );
+      nut.position.copy(position);
+      nut.castShadow = true;
+      bridge.add(nut);
+    }
+
+    function createArchBearing(x, side) {
+      const base = archPoint(x, side);
+      const z = base.z;
+
+      // Pedestal beton tumpuan.
+      // Permukaan air berada di y = -7.0.
+      // Dasar pedestal dibuat sampai y = -8.25 agar bagian bawah
+      // tumpuan tampak sedikit tenggelam di air.
+      const WATER_LEVEL_Y = -7.0;
+      const PEDESTAL_BOTTOM_Y = -8.25;
+      const PEDESTAL_TOP_Y = ARCH_SPRING_Y - 0.48;
+      const pedestalHeight = PEDESTAL_TOP_Y - PEDESTAL_BOTTOM_Y;
+
+      const pedestal = new THREE.Mesh(
+        new THREE.BoxGeometry(5.2, pedestalHeight, 4.2),
+        concreteMat
+      );
+
+      pedestal.position.set(
+        x,
+        (PEDESTAL_TOP_Y + PEDESTAL_BOTTOM_Y) / 2,
+        z
+      );
+
+      pedestal.castShadow = true;
+      pedestal.receiveShadow = true;
+      bridge.add(pedestal);
+
+      // Collar tipis tepat di garis air supaya efek "masuk air"
+      // terlihat jelas saat kamera diputar.
+      const waterlineCollar = new THREE.Mesh(
+        new THREE.BoxGeometry(5.38, 0.10, 4.38),
+        bearingMat
+      );
+
+      waterlineCollar.position.set(
+        x,
+        WATER_LEVEL_Y + 0.03,
+        z
+      );
+
+      waterlineCollar.castShadow = true;
+      bridge.add(waterlineCollar);
+
+      // Base plate.
+      const basePlate = new THREE.Mesh(
+        new THREE.BoxGeometry(3.4, 0.24, 2.8),
+        bearingMat
+      );
+      basePlate.position.set(x, ARCH_SPRING_Y - 0.31, z);
+      basePlate.castShadow = true;
+      bridge.add(basePlate);
+
+      // Dua plate tegak yang memegang pin.
+      for (const dz of [-0.70, 0.70]) {
+        const cheekPlate = new THREE.Mesh(
+          new THREE.BoxGeometry(1.5, 1.25, 0.16),
+          steelDark
+        );
+        cheekPlate.position.set(x, ARCH_SPRING_Y + 0.30, z + dz);
+        cheekPlate.rotation.z = x < 0
+          ? THREE.MathUtils.degToRad(-15)
+          : THREE.MathUtils.degToRad(15);
+        cheekPlate.castShadow = true;
+        bridge.add(cheekPlate);
+      }
+
+      // Pin tumpuan melintang.
+      addCylinderBetween(
+        new THREE.Vector3(x, ARCH_SPRING_Y + 0.32, z - 0.95),
+        new THREE.Vector3(x, ARCH_SPRING_Y + 0.32, z + 0.95),
+        0.22,
+        boltMat
+      );
+
+      // 4 anchor bolt + mur.
+      const boltOffsets = [
+        [-1.05, -0.82],
+        [-1.05,  0.82],
+        [ 1.05, -0.82],
+        [ 1.05,  0.82]
+      ];
+
+      for (const [dx, dz] of boltOffsets) {
+        const bolt = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.07, 0.07, 0.65, 10),
+          boltMat
+        );
+        bolt.position.set(x + dx, ARCH_SPRING_Y + 0.02, z + dz);
+        bolt.castShadow = true;
+        bridge.add(bolt);
+
+        createNut(
+          new THREE.Vector3(
+            x + dx,
+            ARCH_SPRING_Y + 0.36,
+            z + dz
+          )
+        );
+      }
+    }
+
+    // Empat kaki arch.
+    for (const x of [ARCH_START, ARCH_END]) {
+      for (const side of [-1, 1]) {
+        createArchBearing(x, side);
+      }
     }
 
     // ============================================================
@@ -591,31 +668,29 @@
     // ============================================================
 
     for (const side of [-1, 1]) {
-      const z = side * 5.05;
+      const z = side * 5.02;
 
-      // Handrail memanjang
       addBeam(
-        new THREE.Vector3(-75, 1.18, z),
-        new THREE.Vector3(75, 1.18, z),
-        0.12,
-        0.12,
+        new THREE.Vector3(-75, 1.13, z),
+        new THREE.Vector3(75, 1.13, z),
+        0.10,
+        0.10,
         railingMat
       );
 
       addBeam(
-        new THREE.Vector3(-75, 0.70, z),
-        new THREE.Vector3(75, 0.70, z),
-        0.08,
-        0.08,
+        new THREE.Vector3(-75, 0.68, z),
+        new THREE.Vector3(75, 0.68, z),
+        0.07,
+        0.07,
         railingMat
       );
 
-      // Tiang railing
       for (let x = -75; x <= 75; x += 3) {
         addCylinderBetween(
-          new THREE.Vector3(x, 0.25, z),
-          new THREE.Vector3(x, 1.18, z),
-          0.035,
+          new THREE.Vector3(x, 0.27, z),
+          new THREE.Vector3(x, 1.13, z),
+          0.030,
           railingMat
         );
       }
@@ -626,70 +701,143 @@
     // ============================================================
 
     function addLamp(x, side) {
-      const z = side * 4.72;
+      const z = side * 4.70;
 
       addCylinderBetween(
-        new THREE.Vector3(x, 0.35, z),
-        new THREE.Vector3(x, 3.1, z),
-        0.055,
+        new THREE.Vector3(x, 0.36, z),
+        new THREE.Vector3(x, 3.10, z),
+        0.048,
         lampMat
       );
 
-      const armEnd = new THREE.Vector3(
-        x,
-        3.15,
-        z - side * 0.72
-      );
+      const top = new THREE.Vector3(x, 3.10, z);
+      const end = new THREE.Vector3(x, 3.15, z - side * 0.70);
 
-      addCylinderBetween(
-        new THREE.Vector3(x, 3.08, z),
-        armEnd,
-        0.045,
+      addCylinderBetween(top, end, 0.040, lampMat);
+
+      const head = new THREE.Mesh(
+        new THREE.BoxGeometry(0.42, 0.10, 0.18),
         lampMat
       );
-
-      const lampHead = new THREE.Mesh(
-        new THREE.BoxGeometry(0.48, 0.12, 0.20),
-        lampMat
-      );
-
-      lampHead.position.copy(armEnd);
-      lampHead.position.z -= side * 0.15;
-      lampHead.castShadow = true;
-      bridge.add(lampHead);
+      head.position.copy(end);
+      head.position.z -= side * 0.12;
+      head.castShadow = true;
+      bridge.add(head);
     }
 
     for (let x = -67.5; x <= 67.5; x += 15) {
       addLamp(x, -1);
-      addLamp(x + 7.5, 1);
+      if (x + 7.5 <= 75) addLamp(x + 7.5, 1);
     }
 
     // ============================================================
-    // 15. ABUTMENT RINGAN
+    // 15. ABUTMENT UJUNG DECK
     // ============================================================
 
-    for (const x of [-73, 73]) {
+    for (const x of [-73.2, 73.2]) {
       const abutment = new THREE.Mesh(
-        new THREE.BoxGeometry(5.0, 5.0, 11.5),
+        new THREE.BoxGeometry(5.0, 4.6, 11.6),
         concreteMat
       );
-
-      abutment.position.set(x, -3.0, 0);
+      abutment.position.set(x, -2.75, 0);
       abutment.castShadow = true;
       abutment.receiveShadow = true;
       bridge.add(abutment);
     }
 
     // ============================================================
-    // 16. WATER + LAND
+    // 16. MOBIL 3D SEDERHANA + ANIMASI
+    // ============================================================
+
+    const cars = [];
+
+    function createCar(color, x, laneZ, direction, speed) {
+      const car = new THREE.Group();
+
+      const paint = new THREE.MeshStandardMaterial({
+        color,
+        metalness: 0.20,
+        roughness: 0.42
+      });
+
+      const glass = new THREE.MeshStandardMaterial({
+        color: 0x23384a,
+        metalness: 0.15,
+        roughness: 0.22
+      });
+
+      const tireMat = new THREE.MeshStandardMaterial({
+        color: 0x181818,
+        roughness: 0.96
+      });
+
+      const body = new THREE.Mesh(
+        new THREE.BoxGeometry(3.6, 0.62, 1.62),
+        paint
+      );
+      body.position.y = 0.55;
+      body.castShadow = true;
+      car.add(body);
+
+      const cabin = new THREE.Mesh(
+        new THREE.BoxGeometry(1.85, 0.68, 1.38),
+        paint
+      );
+      cabin.position.set(-0.10, 1.02, 0);
+      cabin.castShadow = true;
+      car.add(cabin);
+
+      const windscreen = new THREE.Mesh(
+        new THREE.BoxGeometry(0.08, 0.46, 1.16),
+        glass
+      );
+      windscreen.position.set(direction > 0 ? 0.84 : -0.84, 1.03, 0);
+      car.add(windscreen);
+
+      const wheelPositions = [
+        [-1.08, -0.72],
+        [-1.08,  0.72],
+        [ 1.08, -0.72],
+        [ 1.08,  0.72]
+      ];
+
+      for (const [wx, wz] of wheelPositions) {
+        const wheel = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.30, 0.30, 0.22, 14),
+          tireMat
+        );
+        wheel.rotation.x = Math.PI / 2;
+        wheel.position.set(wx, 0.31, wz);
+        wheel.castShadow = true;
+        car.add(wheel);
+      }
+
+      car.position.set(x, DECK_Y + 0.20, laneZ);
+      if (direction < 0) car.rotation.y = Math.PI;
+
+      car.userData.direction = direction;
+      car.userData.speed = speed;
+
+      bridge.add(car);
+      cars.push(car);
+    }
+
+    // Dua arah.
+    createCar(0xd62828, -60, -1.75,  1, 10.0);
+    createCar(0x2563eb, -12, -1.75,  1, 8.2);
+    createCar(0xf59e0b,  46,  1.75, -1, 9.0);
+    createCar(0xffffff,  75,  1.75, -1, 10.4);
+
+    // ============================================================
+    // 17. AIR / TANAH / APPROACH
     // ============================================================
 
     const water = new THREE.Mesh(
-      new THREE.PlaneGeometry(125, 155),
+      new THREE.PlaneGeometry(130, 170),
       waterMat
     );
     water.rotation.x = -Math.PI / 2;
-    water.position.set(0, -7.15, 0);
+    water.position.set(0, -7.0, 0);
     water.receiveShadow = true;
     scene.add(water);
 
@@ -698,47 +846,46 @@
         new THREE.PlaneGeometry(width, 180),
         landMat
       );
-
       land.rotation.x = -Math.PI / 2;
-      land.position.set(x, -6.95, 0);
+      land.position.set(x, -6.82, 0);
       land.receiveShadow = true;
       scene.add(land);
     }
 
-    addLand(-107, 90);
-    addLand(107, 90);
+    addLand(-108, 92);
+    addLand(108, 92);
 
-    // Jalan pendek di daratan untuk membuat deck terasa menyatu dengan tapak.
-    for (const x of [-105, 105]) {
-      const approach = new THREE.Mesh(
-        new THREE.BoxGeometry(60, 0.12, 8.5),
+    for (const x of [-104, 104]) {
+      const road = new THREE.Mesh(
+        new THREE.BoxGeometry(58, 0.12, 8.45),
         asphaltMat
       );
-      approach.position.set(x, 0.04, 0);
-      approach.receiveShadow = true;
-      scene.add(approach);
+      road.position.set(x, 0.04, 0);
+      road.receiveShadow = true;
+      scene.add(road);
 
-      const approachCenter = new THREE.Mesh(
-        new THREE.BoxGeometry(59, 0.025, 0.10),
+      const stripe = new THREE.Mesh(
+        new THREE.BoxGeometry(57, 0.025, 0.10),
         yellowPaintMat
       );
-      approachCenter.position.set(x, 0.115, 0);
-      scene.add(approachCenter);
+      stripe.position.set(x, 0.115, 0);
+      scene.add(stripe);
     }
 
-    // Garis kontur sederhana di kedua bank agar nuansa tapak mendekati PDF.
     function addContourSet(side) {
-      const baseX = side < 0 ? -138 : 138;
+      const baseX = side < 0 ? -142 : 142;
 
-      for (let i = 0; i < 9; i++) {
-        const x0 = baseX - side * i * 5.2;
+      for (let i = 0; i < 10; i++) {
+        const x0 = baseX - side * i * 5.0;
+        const y = -6.67 + i * 0.025;
+
         const points = [
-          new THREE.Vector3(x0, -6.82 + i * 0.02, -80),
-          new THREE.Vector3(x0 + side * 5, -6.82 + i * 0.02, -45),
-          new THREE.Vector3(x0 + side * 10, -6.82 + i * 0.02, -15),
-          new THREE.Vector3(x0 + side * 8, -6.82 + i * 0.02, 20),
-          new THREE.Vector3(x0 + side * 2, -6.82 + i * 0.02, 55),
-          new THREE.Vector3(x0, -6.82 + i * 0.02, 80)
+          new THREE.Vector3(x0, y, -82),
+          new THREE.Vector3(x0 + side * 4, y, -52),
+          new THREE.Vector3(x0 + side * 10, y, -22),
+          new THREE.Vector3(x0 + side * 12, y, 8),
+          new THREE.Vector3(x0 + side * 8, y, 38),
+          new THREE.Vector3(x0 + side * 2, y, 82)
         ];
 
         const geo = new THREE.BufferGeometry().setFromPoints(points);
@@ -750,16 +897,62 @@
     addContourSet(1);
 
     // ============================================================
-    // 17. ANIMATION
+    // 18. ANIMATION
     // ============================================================
+
+    const clock = new THREE.Clock();
+    let trafficRunning = true;
+
+    function updateCars(delta) {
+      if (!trafficRunning) return;
+
+      const minX = -126;
+      const maxX = 126;
+
+      for (const car of cars) {
+        car.position.x += car.userData.direction * car.userData.speed * delta;
+
+        if (car.userData.direction > 0 && car.position.x > maxX) {
+          car.position.x = minX;
+        }
+
+        if (car.userData.direction < 0 && car.position.x < minX) {
+          car.position.x = maxX;
+        }
+      }
+    }
 
     function animate() {
       requestAnimationFrame(animate);
+
+      const delta = Math.min(clock.getDelta(), 0.05);
+      updateCars(delta);
       controls.update();
       renderer.render(scene, camera);
     }
 
     animate();
+
+    // ============================================================
+    // 19. BUTTON
+    // ============================================================
+
+    document.getElementById("resetCamera").addEventListener("click", () => {
+      camera.position.set(118, 56, 92);
+      controls.target.set(0, 1.4, 0);
+      controls.update();
+    });
+
+    const trafficButton = document.getElementById("toggleTraffic");
+
+    trafficButton.addEventListener("click", () => {
+      trafficRunning = !trafficRunning;
+      trafficButton.textContent = trafficRunning ? "Pause mobil" : "Jalankan mobil";
+    });
+
+    // ============================================================
+    // 20. RESIZE
+    // ============================================================
 
     window.addEventListener("resize", () => {
       camera.aspect = window.innerWidth / window.innerHeight;
