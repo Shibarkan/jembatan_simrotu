@@ -64,7 +64,7 @@ const stats = [
   },
   {
     icon: Activity,
-    value: '10°',
+    value: '27,20°',
     label: 'Kemiringan Pelengkung',
   },
   {
